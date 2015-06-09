@@ -101,7 +101,7 @@ literally), you can define your route like so:
     
 Note that, because we parse the query string and match against the
 resulting map, this route will match both
-`http://www.google.com/?q=foo*sort=relevance` and
+`http://www.google.com/?q=foo&sort=relevance` and
 `http://www.google.com/?sort=relevance&q=foo`.
 
 The helper macros `mock/with-mock-routes` and
