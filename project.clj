@@ -1,4 +1,4 @@
-(defproject clj-http-mock "0.1.0-SNAPSHOT"
+(defproject clj-http-mock "0.1.0"
   :description "Mock responses to clj-http requests."
   :url "http://github.com/ray1729/clj-http-mock"
   :license {:name "Eclipse Public License"
