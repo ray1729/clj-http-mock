@@ -54,3 +54,14 @@
     (not-mocked? (http/get "http://bar.com/foo"))
     (not-mocked? (http/get "http://bar.com:80/foo"))
     (not-mocked? (http/get "http://bar.com:443/foo"))))
+
+(deftest redirects
+  (let [redirect (fn [loc] (constantly {:status 302 :headers {"location" loc} :body nil}))]
+    (mock/with-mock-routes
+      [(mock/route :get "http://foo.com/1") (redirect "http://foo.com/2")
+       (mock/route :get "http://foo.com/2") (redirect "http://foo.com/3")
+       (mock/route :get "http://foo.com/3") (constantly {:status 200 :body "OK"})]
+      (let [res (http/get "http://foo.com/1" {:follow-redirects true})]
+        (is (= 200 (:status res)))
+        (is (= ["http://foo.com/1" "http://foo.com/2" "http://foo.com/3"]
+               (:trace-redirects res)))))))

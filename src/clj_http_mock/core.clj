@@ -132,7 +132,8 @@
 (defn- utf8-bytes
     "Returns the UTF-8 bytes corresponding to the given string."
     [^String s]
-    (.getBytes s "UTF-8"))
+    (when s
+      (.getBytes s "UTF-8")))
 
 (defn- unwrap-body
   [request]
@@ -145,8 +146,7 @@
 (defn try-intercept
   [origfn request]
   (if-let [handler (mock-handler-for request)]
-    (let [response (handler (unwrap-body request))]
-      (update-in response [:body] utf8-bytes))
+    (-> (handler (unwrap-body request)) (update-in [:body] utf8-bytes))
     (if *in-isolation*
       (throw
        (Exception. (str "No matching mock route found to handle request: "
