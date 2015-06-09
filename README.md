@@ -116,18 +116,23 @@ The `clj-http-mock.response` namespace contains a few functions for
 generating responses:
 
 * HTTP status 200, constant body
+
     (ok-response "Body text")
 
 * HTTP status 200, body read from `clojure.java.io/resource`
+
     (resource-response "my-mocks/page.html")
     
 * HTTP status 302, Location header set to `url`
+
     (redirect-response url)
     
 * HTTP status 307, Location header set to `url`
+
     (redirect-response url :status 307)
     
 * HTTP status 404, empty body
+
     (not-found-response)
 
 ## License
