@@ -19,6 +19,11 @@
    :path         any
    :query-params any})
 
+(defn parse-query-string
+  [s]
+  (when-not (empty? s)
+    (map-keys keyword (form-decode s))))
+
 (letfn [(get-port [^URL u]
           (let [p (.getPort u)]
             (if (> p 0)
@@ -26,7 +31,7 @@
               (.getDefaultPort u))))
         (get-query-params [^URL u]
           (when-let [query-string (.getQuery u)]
-            (map-keys keyword (form-decode u))))]
+            (parse-query-string query-string)))]
   (defn parse-url
     [s]
     (let [^URL u (URL. s)]
@@ -103,7 +108,7 @@
 
 (defn query-string-matches?
   [route-spec {:keys [query-string]}]
-  (let [query (when (not-empty query-string) (map-keys keyword (form-decode query-string)))]
+  (let [query (parse-query-string query-string)]
     (matches? (:query-params route-spec) query)))
 
 (defn route-matches?
