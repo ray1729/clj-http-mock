@@ -63,3 +63,12 @@
       (is (= 200 (:status res)))
       (is (= ["http://foo.com/1" "http://foo.com/2" "http://foo.com/3"]
              (:trace-redirects res))))))
+
+(deftest regex-in-query-params
+  (mock/with-mock-routes
+    [(mock/route :get "http://foo.com/" {:q #".*"}) (ok-response "Mocked")]
+    (mocked? (http/get "http://foo.com/" {:query-params {:q "foo"}}))
+    (mocked? (http/get "http://foo.com/" {:query-params {:q 123}}))
+    (mocked? (http/get "http://foo.com/" {:query-params {:q nil}}))
+    (not-mocked? (http/get "http://foo.com/"))
+    (not-mocked? (http/get "http://foo.com/" {:query-params {:bar "food"}}))))
