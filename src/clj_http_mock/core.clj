@@ -76,7 +76,7 @@
    (fn? wanted)  (wanted val)
    (set? wanted) (contains? wanted val)
    (map? wanted) (and (map? val)
-                      (= (keys wanted) (keys val))
+                      (= (set (keys wanted)) (set (keys val)))
                       (every? (fn [k] (matches? (wanted k) (val k))) (keys wanted)))
    (instance? java.util.regex.Pattern wanted) (and val (re-find wanted val))
    :else (= wanted val)))
