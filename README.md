@@ -26,7 +26,7 @@ Available from Clojars:
       [(mock/route :get "http://www.google.com/")      
       (constantly {:status 200 :body "Mocked"})]
       (http/get "http://www.google.com/"))
-    ;;=> {:status 200 :body "q=foo"}
+    ;;=> {:status 200 :body "Mocked"}
     
 To match any query parameters:
 
