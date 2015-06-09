@@ -1,11 +1,10 @@
 (ns clj-http-mock.core-test
   (:require [clojure.test :refer :all]
             [clj-http-mock.core :as mock]
+            [clj-http-mock.response :refer [ok-response redirect-response]]
             [clj-http.client :as http]))
 
 (mock/set-in-isolation! true)
-
-(def mock-response (constantly {:status 200 :body "Mocked"}))
 
 (defmacro mocked?
   [expr]
@@ -18,7 +17,7 @@
 
 (deftest url-no-path
   (mock/with-mock-routes
-    [(mock/route :get "http://foo.com") mock-response]
+    [(mock/route :get "http://foo.com") (ok-response "Mocked")]
     (mocked? (http/get "http://foo.com"))
     (mocked? (http/get "http://foo.com/"))
     (not-mocked? (http/get "http://bar.com"))
@@ -26,8 +25,8 @@
 
 (deftest url-with-path
   (mock/with-mock-routes
-    [(mock/route :get "http://foo.com/bar") mock-response
-     (mock/route :get "http://foo.com/baz") mock-response]
+    [(mock/route :get "http://foo.com/bar") (ok-response "Mocked")
+     (mock/route :get "http://foo.com/baz") (ok-response "Mocked")]
     (doseq [u ["http://foo.com/bar" "http://foo.com/baz"]]
       (mocked? (http/get u)))
     (doseq [u ["http://foo.com" "http://foo.com/" "http://foo.com/quux"]]
@@ -35,15 +34,15 @@
 
 (deftest url-with-port
   (mock/with-mock-routes
-    [(mock/route :get "http://foo.com:81/bar") mock-response]
+    [(mock/route :get "http://foo.com:81/bar") (ok-response "Mocked")]
     (mocked? (http/get "http://foo.com:81/bar"))
     (not-mocked? (http/get "http://foo.com/bar"))
     (not-mocked? (http/get "http://foo.com:8080/bar"))))
 
 (deftest default-ports
   (mock/with-mock-routes
-    [(mock/route {:scheme :http :host "foo.com" :path "/bar" :query-params nil}) mock-response
-     (mock/route {:scheme :https :host "bar.com" :path "/foo" :query-params nil}) mock-response]
+    [(mock/route {:scheme :http :host "foo.com" :path "/bar" :query-params nil}) (ok-response "Mocked")
+     (mock/route {:scheme :https :host "bar.com" :path "/foo" :query-params nil}) (ok-response "Mocked")]
     (mocked? (http/get "http://foo.com/bar"))
     (mocked? (http/get "http://foo.com:80/bar"))
     (mocked? (http/get "https://bar.com/foo"))
@@ -56,12 +55,11 @@
     (not-mocked? (http/get "http://bar.com:443/foo"))))
 
 (deftest redirects
-  (let [redirect (fn [loc] (constantly {:status 302 :headers {"location" loc} :body nil}))]
-    (mock/with-mock-routes
-      [(mock/route :get "http://foo.com/1") (redirect "http://foo.com/2")
-       (mock/route :get "http://foo.com/2") (redirect "http://foo.com/3")
-       (mock/route :get "http://foo.com/3") (constantly {:status 200 :body "OK"})]
-      (let [res (http/get "http://foo.com/1" {:follow-redirects true})]
-        (is (= 200 (:status res)))
-        (is (= ["http://foo.com/1" "http://foo.com/2" "http://foo.com/3"]
-               (:trace-redirects res)))))))
+  (mock/with-mock-routes
+    [(mock/route :get "http://foo.com/1") (redirect-response "http://foo.com/2")
+     (mock/route :get "http://foo.com/2") (redirect-response "http://foo.com/3")
+     (mock/route :get "http://foo.com/3") (ok-response "OK")]
+    (let [res (http/get "http://foo.com/1" {:follow-redirects true})]
+      (is (= 200 (:status res)))
+      (is (= ["http://foo.com/1" "http://foo.com/2" "http://foo.com/3"]
+             (:trace-redirects res))))))
