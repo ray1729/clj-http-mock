@@ -24,7 +24,7 @@ Available from Clojars:
              
     (mock/with-mock-routes
       [(mock/route :get "http://www.google.com/")      
-      (constantly {:status 200 :body "Mocked"})]
+       (constantly {:status 200 :body "Mocked"})]
       (http/get "http://www.google.com/"))
     ;;=> {:status 200 :body "Mocked"}
     
@@ -117,23 +117,23 @@ generating responses:
 
 * HTTP status 200, constant body
 
-    (ok-response "Body text")
+    `(ok-response "Body text")`
 
 * HTTP status 200, body read from `clojure.java.io/resource`
 
-    (resource-response "my-mocks/page.html")
+    `(resource-response "my-mocks/page.html")`
     
 * HTTP status 302, Location header set to `url`
 
-    (redirect-response url)
+    `(redirect-response url)`
     
 * HTTP status 307, Location header set to `url`
 
-    (redirect-response url :status 307)
+    `(redirect-response url :status 307)`
     
 * HTTP status 404, empty body
 
-    (not-found-response)
+    `(not-found-response)`
 
 ## License
 
