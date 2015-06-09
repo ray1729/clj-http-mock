@@ -42,8 +42,8 @@
 
 (deftest default-ports
   (mock/with-mock-routes
-    [(mock/route {:scheme "http" :host "foo.com" :path "/bar" :query-params nil}) mock-response
-     (mock/route {:scheme "https" :host "bar.com" :path "/foo" :query-params nil}) mock-response]
+    [(mock/route {:scheme :http :host "foo.com" :path "/bar" :query-params nil}) mock-response
+     (mock/route {:scheme :https :host "bar.com" :path "/foo" :query-params nil}) mock-response]
     (mocked? (http/get "http://foo.com/bar"))
     (mocked? (http/get "http://foo.com:80/bar"))
     (mocked? (http/get "https://bar.com/foo"))

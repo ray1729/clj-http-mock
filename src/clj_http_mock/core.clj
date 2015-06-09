@@ -1,6 +1,7 @@
 (ns clj-http-mock.core
   (:require [clj-http.core]
             [robert.hooke]
+            [medley.core :refer [map-keys]]
             [ring.util.codec :refer [form-decode]])
   (:import [org.apache.http HttpEntity]
            [java.net URL]))
@@ -8,13 +9,15 @@
 (def ^:dynamic *mock-routes* [])
 (def ^:dynamic *in-isolation* false)
 
+(def any (constantly true))
+
 (def any-route
-  {:method       :any
-   :scheme       (constantly true)
-   :host         (constantly true)
-   :port         (constantly true)
-   :path         (constantly true)
-   :query-params (constantly true)})
+  {:method       any
+   :scheme       any
+   :host         any
+   :port         any
+   :path         any
+   :query-params any})
 
 (letfn [(get-port [^URL u]
           (let [p (.getPort u)]
@@ -23,11 +26,11 @@
               (.getDefaultPort u))))
         (get-query-params [^URL u]
           (when-let [query-string (.getQuery u)]
-            (form-decode u)))]
+            (map-keys keyword (form-decode u))))]
   (defn parse-url
     [s]
     (let [^URL u (URL. s)]
-      {:scheme       (.getProtocol u)
+      {:scheme       (keyword (.getProtocol u))
        :host         (.getHost u)
        :port         (get-port u)
        :path         (.getPath u)
@@ -35,7 +38,7 @@
 
 (defn route
   ([m]
-   (merge {:method :get :scheme "http" :port nil :path "/" :query-parms nil} m))
+   (merge {:method :get :scheme :http :port nil :path "/" :query-parms nil} m))
 
   ([method url]
    (assoc (parse-url url) :method method))
@@ -71,8 +74,6 @@
                       (= (keys wanted) (keys val))
                       (every? (fn [k] (matches? (wanted k) (val k))) (keys wanted)))
    (instance? java.util.regex.Pattern wanted) (and val (re-find wanted val))
-   (string? wanted) (or (= wanted val) (= (keyword wanted) val))
-   (keyword? wanted) (or (= wanted val) (= (name wanted) val))
    :else (= wanted val)))
 
 (defn request-method-matches?
@@ -91,8 +92,8 @@
 (defn server-port-matches?
   [{:keys [scheme port] :as route-spec} {:keys [server-port]}]
   (or (matches? port server-port)
-      (and (= scheme "http")  (contains? #{nil  80} port) (contains? #{nil  80} server-port))
-      (and (= scheme "https") (contains? #{nil 443} port) (contains? #{nil 443} server-port))))
+      (and (= scheme :http)  (contains? #{nil  80} port) (contains? #{nil  80} server-port))
+      (and (= scheme :https) (contains? #{nil 443} port) (contains? #{nil 443} server-port))))
 
 (defn uri-matches?
   [{:keys [path] :as route-spec} {:keys [uri]}]
@@ -102,7 +103,7 @@
 
 (defn query-string-matches?
   [route-spec {:keys [query-string]}]
-  (let [query (when (not-empty query-string) (form-decode query-string))]
+  (let [query (when (not-empty query-string) (map-keys keyword (form-decode query-string)))]
     (matches? (:query-params route-spec) query)))
 
 (defn route-matches?
@@ -150,16 +151,3 @@
 
 (robert.hooke/add-hook #'clj-http.core/request
                        #'try-intercept)
-
-(comment
-
-  (require '[clj-http-mock.core :as mock]
-           '[clj-http.client :as http])
-
-  (mock/with-mock-routes
-    [(mock/route :get "http://foo.com") (constantly {:status 200 :body "foo.com"})]
-
-    (http/get "http://foo.com"))
-
-
-  )

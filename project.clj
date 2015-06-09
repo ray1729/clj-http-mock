@@ -6,5 +6,5 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [clj-http "1.0.1"]
                  [robert/hooke "1.3.0"]
-                 [com.cemerick/url "0.1.1"]
-                 [ring/ring-codec "1.0.0"]])
+                 [ring/ring-codec "1.0.0"]
+                 [medley "0.6.0"]])
